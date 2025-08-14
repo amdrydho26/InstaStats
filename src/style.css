@@ -1,0 +1,18 @@
+:root {
+  font-family: "Inter", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  --bg-prime: #0D0D0D;
+  --bg-second: #1E1E20;
+  --text-prime: #EDEDED;
+  --text-second: #A5A5A5;
+  --accent: #3457D5;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-prime);
+  color: var(--text-prime);
+}
