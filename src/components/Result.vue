@@ -1,5 +1,34 @@
-<script setup lang="ts">
-import router from '../router';
+<script setup>
+
+    import { onMounted, computed } from 'vue';
+    import { useDataStore } from '../store/dataStore.js'
+
+    const store = useDataStore();
+
+    onMounted(() => {
+        store.loadFromStorage();
+    })
+    
+    const mutualFollow = computed(() =>
+        store.followers.filter(f => store.following.some(fl => fl.value === f.value))
+    )
+
+    const notFollowBack = computed(() =>
+        store.following.filter(f => !store.followers.some(fl => fl.value === f.value))
+    )
+
+// 3. Tidak Kamu Ikuti Balik
+    const youNotFollow = computed(() =>
+        store.followers.filter(f => !store.following.some(fl => fl.value === f.value))
+    )
+
+// 4. Persentase Follow Back
+    const followBackPercentage = computed(() => {
+        if (store.following.length === 0) return 0
+        return ((mutualFollow.value.length / store.following.length) * 100).toFixed(2)
+    })
+
+console.log(mutualFollow.value);
 
 </script>
 
@@ -24,357 +53,92 @@ import router from '../router';
             <div class="stat">
                 <div class="stat-item">
                     <p class="title">Total Pengikut</p>
-                    <p class="count">500</p>
+                    <p class="count">{{ store.followers.length }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Total Mengikuti</p>
-                    <p class="count">500</p>
+                    <p class="count">{{ store.following.length }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Saling Mengikuti</p>
-                    <p class="count">500</p>
+                    <p class="count">{{ mutualFollow.length }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Kamu Tidak Follback</p>
-                    <p class="count">500</p>
+                    <p class="count">{{ youNotFollow.length }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Tidak Follback Kamu</p>
-                    <p class="count">500</p>
+                    <p class="count">{{ notFollowBack.length }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Tingkat Follback Kamu</p>
-                    <p class="count">80%</p>
+                    <p class="count">{{ followBackPercentage }}%</p>
                 </div>
             </div>
         </div>
 
         <div class="content">
-            <h1>Saling Mengikuti <span style="font-size: 1.5rem; color: var(--accent);">500</span></h1>
-            <p>Orang yang mengikuti kamu dan kamu ikuti balik.</p>
+            <h1>Saling Mengikuti <span style="font-size: 1.5rem; color: var(--accent);">{{ mutualFollow.length }}</span></h1>
+            <p>Orang yang mengikuti kamu dan kamu ikuti balik</p>
             <div class="table">
                 <table>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
+                    <tr v-for="user in mutualFollow" :key="user.href">
+                        <td class="name"><a :href="user.href" target="_blank">{{ user.value }}</a></td>
+                        <td class="date">{{ user.timestamp }}</td>
                     </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    
                 </table>
             </div>
         </div>
 
         <div class="content">
-            <h1>Saling Mengikuti <span style="font-size: 1.5rem; color: var(--accent);">500</span></h1>
-            <p>Orang yang mengikuti kamu dan kamu ikuti balik.</p>
+            <h1>Tidak follow kamu balik <span style="font-size: 1.5rem; color: var(--accent);">{{ notFollowBack.length }}</span></h1>
+            <p>Orang yang kamu ikuti tapi mereka tidak mengikuti kamu balik</p>
             <div class="table">
                 <table>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
+                    <tr v-for="user in notFollowBack" :key="user.href">
+                        <td class="name"><a :href="user.href" target="_blank">{{ user.value }}</a></td>
+                        <td class="date">{{ user.timestamp }}</td>
                     </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    
                 </table>
             </div>
         </div>
 
         <div class="content">
-            <h1>Saling Mengikuti <span style="font-size: 1.5rem; color: var(--accent);">500</span></h1>
-            <p>Orang yang mengikuti kamu dan kamu ikuti balik.</p>
+            <h1>Kamu Tidak Follow Balik <span style="font-size: 1.5rem; color: var(--accent);">{{ youNotFollow.length }}</span></h1>
+            <p>Orang yang mengikuti kamu tapi kamu tidak mengikuti mereka balik</p>
             <div class="table">
                 <table>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
+                    <tr v-for="user in youNotFollow" :key="user.href">
+                        <td class="name"><a :href="user.href" target="_blank">{{ user.value }}</a></td>
+                        <td class="date">{{ user.timestamp }}</td>
                     </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    
                 </table>
             </div>
         </div>
 
         <div class="content">
-            <h1>Saling Mengikuti <span style="font-size: 1.5rem; color: var(--accent);">500</span></h1>
-            <p>Orang yang mengikuti kamu dan kamu ikuti balik.</p>
+            <h1>Semua pengikut <span style="font-size: 1.5rem; color: var(--accent);">{{ store.followers.length }}</span></h1>
+            <br>
             <div class="table">
                 <table>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
+                    <tr v-for="user in store.followers" :key="user.href">
+                        <td class="name"><a :href="user.href" target="_blank">{{ user.value }}</a></td>
+                        <td class="date">{{ user.timestamp }}</td>
                     </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    
                 </table>
             </div>
         </div>
 
         <div class="content">
-            <h1>Saling Mengikuti <span style="font-size: 1.5rem; color: var(--accent);">500</span></h1>
-            <p>Orang yang mengikuti kamu dan kamu ikuti balik.</p>
+            <h1>Semua yang Diikuti <span style="font-size: 1.5rem; color: var(--accent);">{{ store.following.length }}</span></h1>
+            <br>
             <div class="table">
                 <table>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
+                    <tr v-for="user in store.following" :key="user.href">
+                        <td class="name"><a :href="user.href" target="_blank">{{ user.value }}</a></td>
+                        <td class="date">{{ user.timestamp }}</td>
                     </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    <tr>
-                        <td class="name">@user1234</td>
-                        <td class="date">1 Juni 2024 12:21</td>
-                    </tr>
-                    
                 </table>
             </div>
         </div>
@@ -386,7 +150,7 @@ import router from '../router';
 
     a {
         text-decoration: none;
-        color: var(--text-prime);
+        color: var(--accent);
     }
 
     .container {
@@ -504,7 +268,7 @@ import router from '../router';
 
     .container .content .table table tr .date {
         text-align: end;
-        font-size: 14px;
+        font-size: 10px;
         color: var(--text-second);
     }
 
