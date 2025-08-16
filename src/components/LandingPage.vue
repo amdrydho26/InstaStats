@@ -1,11 +1,19 @@
 <script setup>
 
-    import { ref, watch } from 'vue';
+    import { onMounted, ref, watch } from 'vue';
     import { useRouter } from 'vue-router'
     import { useDataStore } from '../store/dataStore.js'
 
     const store = useDataStore();
     const router = useRouter();
+
+    const err = ref('');
+
+    const fsFileClass = ref('');
+    const fgFileClass = ref('');
+
+    const isLeave = ref(false);
+    const show = ref(true);
 
     function handleFileChange(event, type){
         const file = event.target.files[0];
@@ -26,6 +34,7 @@
                             timestamp: formatTimestamp(data.timestamp)
                         }
                     })
+                    fsFileClass.value = 'file';
                     store.setFollowers(followersList);
                 } else if (type === 'following') {
                     const followingList = jsonData.relationships_following.map(item => {
@@ -36,10 +45,12 @@
                             timestamp: formatTimestamp(data.timestamp)
                         }
                     })
+                    fgFileClass.value = 'file';
                     store.setFollowing(followingList);
                 }
             } catch (err) {
                 console.error(`gagal parsing file ${type} : ${err}`);
+                err.value = err;
             }
         }
 
@@ -58,14 +69,34 @@
     }
 
     function submitData () {
-        router.push('/result');
-        store.loadFromStorage();
+        console.log(store.followers.length, store.following.length);
+        if (!err.value === '' || store.followers.length === 0 || store.following.length === 0) {
+            console.log(err.value);
+        } else {
+            router.push('/loading');
+        }
     }
+
+    function clearLocal(type) {
+        store.clearLocal(type);
+        if (type === 'followers') {
+            fsFileClass.value = 'file fs';
+        } else if (type === 'following') {
+            fgFileClass.value = 'file fg'
+        }
+    }
+    
+
+    onMounted(() => {
+        store.loadFromStorage();
+        fsFileClass.value = (store.followers.length === 0 ? 'file fs' : 'file');
+        fgFileClass.value = (store.following.length === 0 ? 'file fg' : 'file');
+    })
 
 </script>
 
 <template>
-    <div class="container">
+    <div v-if="show" class="container" :class="{leave: isLeave}">
 
         <div class="top-bar">
             <div class="logo">
@@ -74,7 +105,7 @@
                 </router-link>
             </div>
             <div class="icon">
-                <a href=""><font-awesome-icon icon="code" /></a>
+                <a href="https://github.com/amdrydho26/InstaStats.git" target="_blank"><font-awesome-icon icon="code" /></a>
                 <a href="#guide"><font-awesome-icon icon="book" /></a>
             </div>
         </div>
@@ -100,16 +131,20 @@
             <h1>Upload File</h1>
             <p>Upload file <b>Followers_1.json</b> dan <b>Following.json</b> Kamu dibawah ini. Pastikan filenya sesuai, jangan sampai terbalik ya.</p>
             <div class="uploaded">
-                <div class="file">
-                    <p class="title">Followers_1.json</p>
-                    <font-awesome-icon class="icon" icon="x"/>
+                <div class="file-container">
+                    <div :class="fsFileClass">
+                        <p class="title">Followers_1.json</p>
+                        <font-awesome-icon class="icon" icon="x" @click="clearLocal('followers')" style="cursor: pointer;"/>
+                    </div>
                 </div>
-                <div class="file">
-                    <p class="title">Following.json</p>
-                    <font-awesome-icon class="icon" icon="x"/>
+                <div class="file-container">
+                    <div :class="fgFileClass">
+                        <p class="title">Following.json</p>
+                        <font-awesome-icon class="icon" icon="x" @click="clearLocal('following')" style="cursor: pointer;"/>
+                    </div>
                 </div>
             </div>
-            <form>
+            <form @submit.prevent="submitData">
                 <div class="uploader">
                     <label for="followers">
                         <font-awesome-icon class="icon" icon="file"/>
@@ -124,7 +159,7 @@
                     </label>
                     <input type="file" name="following" id="following" accept=".json" @change="e => handleFileChange(e, 'following')">
                 </div>
-                <button @click="submitData()">Analisis Data</button>
+                <button type="submit">Analisis Data</button>
             </form>
             
         </div>
@@ -149,7 +184,7 @@
                 <li>Lalu pilih <b>Analisis Data</b>.</li>
             </ol>
         </div>
-
+        
 
     </div>
 </template>
@@ -172,6 +207,14 @@
         align-items: center;
     }
 
+    .leave {
+        animation: fadeOutDown 1s forwards;
+    }
+
+    .container-leave {
+        animation: fadeOutDown 1s forwards;
+    }
+
     .container .top-bar {
         background-color: var(--bg-second);
         display: flex;
@@ -181,6 +224,8 @@
         margin-top: 1rem;
         padding: 20px 0 20px;
         border-radius: 16px;
+        animation: fadeInDown 1s ease forwards;
+        
     }
 
     .container .top-bar .logo {
@@ -203,6 +248,8 @@
         flex-direction: column;
         text-align: center;
         padding-top: 3rem;
+        animation-delay: 1s;
+        animation: fade 1s ease forwards;
     }
 
     .container .header p {
@@ -215,6 +262,7 @@
         flex-direction: column;
         text-align: center;
         padding-top: 3rem;
+        animation: fadeInUp 1s ease forwards;
     }
 
     .container .files h1 {
@@ -299,7 +347,11 @@
         
     }
 
-    .container .files .uploaded .file {
+    .container .files .uploaded .file-container {
+        background-color: transparent;
+    }
+
+    .container .files .uploaded .file-container .file {
         background-color: var(--accent);
         border-radius: 16px;
         display: flex;
@@ -310,13 +362,21 @@
         padding: 22px 12px;
     }
 
-    .container .files .uploaded .file .title {
+    .container .files .uploaded .file-container .fs {
+        display: none;
+    }
+
+    .container .files .uploaded .file-container .fg {
+        display: none;
+    }
+
+    .container .files .uploaded .file-container .title {
         color: var(--text-prime);
         font-size: 14px;
         margin: 0;
     }
 
-    .container .files .uploaded .file .icon {
+    .container .files .uploaded .file-container .icon {
         font-size: 14px;
     }
 
@@ -326,6 +386,7 @@
         flex-direction: column;
         text-align: start;
         margin-top: 2rem;
+        animation: fadeInUp 1s ease forwards;
     }
 
     .container .guide h1 {

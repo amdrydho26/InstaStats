@@ -28,7 +28,6 @@
         return ((mutualFollow.value.length / store.following.length) * 100).toFixed(2)
     })
 
-console.log(mutualFollow.value);
 
 </script>
 
@@ -43,8 +42,7 @@ console.log(mutualFollow.value);
                 </router-link>
             </div>
             <div class="icon">
-                <a href=""><font-awesome-icon icon="code" /></a>
-                <a href=""><font-awesome-icon icon="book" /></a>
+                <a href="https://github.com/amdrydho26/InstaStats.git" target="_blank"><font-awesome-icon icon="code" /></a>
             </div>
         </div>
 
