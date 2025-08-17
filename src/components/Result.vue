@@ -1,12 +1,28 @@
 <script setup>
 
-    import { onMounted, computed } from 'vue';
+    import { onMounted, computed, ref, watch } from 'vue';
     import { useDataStore } from '../store/dataStore.js'
+    import { useRouter } from 'vue-router'
 
     const store = useDataStore();
+    const router = useRouter();
 
-    onMounted(() => {
-        store.loadFromStorage();
+    const followersShow = ref(0);
+    const followingShow = ref(0);
+    const mutualFollowShow = ref(0);
+    const youNotFollowShow = ref(0);
+    const notFollowBackShow = ref(0);
+    const followBackPercentageShow = ref(0);
+
+    const showModal = ref(false);
+
+    
+    watch(showModal, (val) => {
+        if (val) {
+            document.body.classList.add("modal-open");
+        } else {
+            document.body.classList.remove("modal-open");
+        }
     })
     
     const mutualFollow = computed(() =>
@@ -17,15 +33,50 @@
         store.following.filter(f => !store.followers.some(fl => fl.value === f.value))
     )
 
-// 3. Tidak Kamu Ikuti Balik
     const youNotFollow = computed(() =>
         store.followers.filter(f => !store.following.some(fl => fl.value === f.value))
     )
 
-// 4. Persentase Follow Back
     const followBackPercentage = computed(() => {
         if (store.following.length === 0) return 0
         return ((mutualFollow.value.length / store.following.length) * 100).toFixed(2)
+    })
+
+    function exit () {
+        router.push('/')
+    }
+
+    function exitWithClear () {
+        store.clearLocal('followers');
+        store.clearLocal('following');
+        router.push('/')
+    }
+
+    function animateCounter (refVar, target, duration = 1000) {
+        let startValue = 0;
+        let startTime = performance.now();
+
+        function update (currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            refVar.value = Math.floor(startValue + (target - startValue) * progress);
+
+            if (progress < 1) {
+                requestAnimationFrame(update)
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    onMounted(() => {
+        store.loadFromStorage();
+        animateCounter(followersShow, store.followers.length, 2500);
+        animateCounter(followingShow, store.following.length, 2500);
+        animateCounter(mutualFollowShow, mutualFollow.value.length, 2500);
+        animateCounter(youNotFollowShow, youNotFollow.value.length, 2500);
+        animateCounter(notFollowBackShow, notFollowBack.value.length, 2500);
+        animateCounter(followBackPercentageShow, followBackPercentage.value, 2500);
     })
 
 
@@ -36,10 +87,10 @@
 
         <div class="top-bar">
             <div class="logo">
-                <router-link to="/">
+                <div @click="showModal = true" style="cursor: pointer;">
                     <span style="color: var(--accent);"><font-awesome-icon icon="angle-left"/></span>
                     <span style="font-weight: 400; color: var(--accent);">Insta</span> <span style="font-weight: 700; color: var(--text-second);">Stats</span>
-                </router-link>
+                </div>
             </div>
             <div class="icon">
                 <a href="https://github.com/amdrydho26/InstaStats.git" target="_blank"><font-awesome-icon icon="code" /></a>
@@ -51,27 +102,27 @@
             <div class="stat">
                 <div class="stat-item">
                     <p class="title">Total Pengikut</p>
-                    <p class="count">{{ store.followers.length }}</p>
+                    <p class="count">{{ followersShow }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Total Mengikuti</p>
-                    <p class="count">{{ store.following.length }}</p>
+                    <p class="count">{{ followingShow }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Saling Mengikuti</p>
-                    <p class="count">{{ mutualFollow.length }}</p>
+                    <p class="count">{{ mutualFollowShow }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Kamu Tidak Follback</p>
-                    <p class="count">{{ youNotFollow.length }}</p>
+                    <p class="count">{{ youNotFollowShow }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Tidak Follback Kamu</p>
-                    <p class="count">{{ notFollowBack.length }}</p>
+                    <p class="count">{{ notFollowBackShow }}</p>
                 </div>
                 <div class="stat-item">
                     <p class="title">Tingkat Follback Kamu</p>
-                    <p class="count">{{ followBackPercentage }}%</p>
+                    <p class="count">{{ followBackPercentageShow }}%</p>
                 </div>
             </div>
         </div>
@@ -141,6 +192,28 @@
             </div>
         </div>
 
+        <div v-if="showModal" class="exit-modal">
+            <div class="modal-bg">
+                <div class="modal">
+                    <h2>Konfirmasi Kembali</h2>
+                    <p>Yakin nih mau kembali? Data sebelumnya mau dibersihkan atau dibiarin aja?</p>
+                    <div class="btn">
+                        <div class="cancel">
+                            <button @click="showModal = false">Batal</button>
+                        </div>
+                        <div class="exit">
+                            <button class="not-clear" @click="exit()">Biarin aja</button>
+                            <button class="clear" @click="exitWithClear()">Bersihkan Data</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© Copyright by Insta Stats. All right reserved.</p>
+        </div>
+
     </div>
 </template>
 
@@ -168,6 +241,7 @@
         margin-top: 1rem;
         padding: 20px 0 20px;
         border-radius: 16px;
+        animation: fadeInDown 1s ease forwards;
     }
 
     .container .top-bar .logo {
@@ -189,7 +263,8 @@
         display: flex;
         flex-direction: column;
         padding: 20px;
-        padding-top: 0;       
+        padding-top: 0;   
+        animation: fade 1s ease forwards;    
     }
 
     .container .stats .stat {
@@ -226,7 +301,8 @@
         display: flex;
         flex-direction: column;
         padding: 20px;
-        padding-top: 0; 
+        padding-top: 0;
+        animation: fadeInUp 1s ease forwards;
     }
 
     .container .content h1 {
@@ -270,6 +346,101 @@
         color: var(--text-second);
     }
 
+    .container .exit-modal {
+        width: 100%;
+        height: 100vh;
+        position: fixed;
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: grayscale(100%);
+        z-index: 10;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        animation: fade 0.5s ease forwards;
+    }
+
+    .container .exit-modal .modal-bg {
+        background-color: var(--bg-second);
+        width: 35%;
+        border-radius: 16px;
+    }
+
+    .container .exit-modal .modal-bg .modal {
+        display: flex;
+        flex-direction: column;
+        margin: 16px 24px;
+    }
+
+    .container .exit-modal .modal-bg .modal h2 {
+        margin: 18px 0 10px 0;
+    }
+
+    .container .exit-modal .modal-bg .modal p {
+        margin: 12px 0 48px 0;
+    }
+    
+
+    .container .exit-modal .modal-bg .modal .btn {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: 16px;
+    }
+
+    .container .exit-modal .modal-bg .modal .btn .cancel button {
+        padding: 12px;
+        background-color: var(--text-prime);
+        border: none;
+        border-radius: 8px;
+        color: var(--bg-prime);
+        cursor: pointer;
+    }
+
+    .container .exit-modal .modal-bg .modal .btn .exit {
+        display: flex;
+        flex-direction: row;
+        gap: 6px;
+    }
+
+    .container .exit-modal .modal-bg .modal .btn .exit .clear {
+        padding: 12px;
+        background-color: var(--accent);
+        border: none;
+        border-radius: 8px;
+        color: var(--text-prime);
+        cursor: pointer;
+    }
+
+    .container .exit-modal .modal-bg .modal .btn .exit .not-clear {
+        padding: 12px;
+        background-color: var(--bg-second);
+        border: 2px solid var(--accent);
+        border-radius: 8px;
+        color: var(--accent);
+        cursor: pointer;
+    }
+
+    .container .exit-modal .modal-bg .modal .btn .exit .not-clear:hover {
+        background-color: var(--accent);
+        color: var(--text-prime);
+    }
+
+    .container .footer {
+        width: 100%;
+        height: 50px;
+        font-size: 12px;
+        color: var(--text-second);
+        background-color: var(--bg-second);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-top: 32px;
+    }
+
     @media (max-width: 800px) {
         .container .top-bar {
             width: 90%;
@@ -290,6 +461,12 @@
             width: 90%;
             min-width: 200px;
         }
+
+        .container .exit-modal .modal-bg {
+            width: 90%;
+            min-width: 200px;
+        }
+
     }
 
 </style>

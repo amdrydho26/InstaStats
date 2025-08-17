@@ -15,6 +15,16 @@
     const isLeave = ref(false);
     const show = ref(true);
 
+    const btnText = ref("");
+
+    if (store.followers.length === 0 && store.following.length === 0) {
+        btnText.value = ref("Upload Filenya dulu");
+    } else if (store.followers.length === 0 || store.following.length === 0) {
+        btnText.value = ref("Satu lagi");
+    } else {
+        btnText.value = ref("Analisa Data");
+    }
+
     function handleFileChange(event, type){
         const file = event.target.files[0];
         
@@ -35,7 +45,9 @@
                         }
                     })
                     fsFileClass.value = 'file';
+                    btnText.value = (btnText.value === "Satu lagi" ? "Analisa Data" : "Satu lagi")
                     store.setFollowers(followersList);
+                    console.log(`Upload data followers selesai.`);
                 } else if (type === 'following') {
                     const followingList = jsonData.relationships_following.map(item => {
                         const data = item.string_list_data[0]
@@ -46,7 +58,9 @@
                         }
                     })
                     fgFileClass.value = 'file';
+                    btnText.value = (btnText.value === "Satu lagi" ? "Analisa Data" : "Satu lagi")
                     store.setFollowing(followingList);
+                    console.log(`Upload data following selesai.`);
                 }
             } catch (err) {
                 console.error(`gagal parsing file ${type} : ${err}`);
@@ -69,8 +83,8 @@
     }
 
     function submitData () {
-        console.log(store.followers.length, store.following.length);
         if (!err.value === '' || store.followers.length === 0 || store.following.length === 0) {
+            console.log(`File kosong`);
             console.log(err.value);
         } else {
             router.push('/loading');
@@ -84,13 +98,18 @@
         } else if (type === 'following') {
             fgFileClass.value = 'file fg'
         }
+        btnText.value = (btnText.value === "Satu lagi" ? "Upload Filenya dulu" : "");
+        btnText.value = (btnText.value === "Upload Filenya dulu" ? "Upload Filenya dulu" : "Satu lagi");
+        btnText.value = (btnText.value === "Analisa Data" ? "Satu lagi" : "Upload Filenya dulu");
+        console.log(`Data ${type} dihapus.`);
     }
-    
 
     onMounted(() => {
+        console.log("Mengambil data dari LocalStorage...");
         store.loadFromStorage();
         fsFileClass.value = (store.followers.length === 0 ? 'file fs' : 'file');
         fgFileClass.value = (store.following.length === 0 ? 'file fg' : 'file');
+        console.log("Selesai.");
     })
 
 </script>
@@ -159,7 +178,7 @@
                     </label>
                     <input type="file" name="following" id="following" accept=".json" @change="e => handleFileChange(e, 'following')">
                 </div>
-                <button type="submit">Analisis Data</button>
+                <button type="submit">{{ btnText }}</button>
             </form>
             
         </div>
@@ -185,6 +204,9 @@
             </ol>
         </div>
         
+        <div class="footer">
+            <p>© Copyright by Insta Stats. All right reserved.</p>
+        </div>
 
     </div>
 </template>
@@ -207,14 +229,6 @@
         align-items: center;
     }
 
-    .leave {
-        animation: fadeOutDown 1s forwards;
-    }
-
-    .container-leave {
-        animation: fadeOutDown 1s forwards;
-    }
-
     .container .top-bar {
         background-color: var(--bg-second);
         display: flex;
@@ -225,7 +239,6 @@
         padding: 20px 0 20px;
         border-radius: 16px;
         animation: fadeInDown 1s ease forwards;
-        
     }
 
     .container .top-bar .logo {
@@ -392,7 +405,19 @@
     .container .guide h1 {
         margin-bottom: 12px;
     }
-    
+
+    .container .footer {
+        width: 100%;
+        height: 50px;
+        font-size: 12px;
+        color: var(--text-second);
+        background-color: var(--bg-second);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-top: 32px;
+    }
 
 
     @media (max-width: 800px) {

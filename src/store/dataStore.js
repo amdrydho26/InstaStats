@@ -30,7 +30,7 @@ export const useDataStore = defineStore('data', {
       if (localStorage.getItem(type)) {
           localStorage.removeItem(type);
           type === 'followers' ? this.followers = [] : this.following = [];
-          console.log(type, " Berhasil Dihapus");
+          console.log(`Menghapus ${type}`);
       }
     }
   }
