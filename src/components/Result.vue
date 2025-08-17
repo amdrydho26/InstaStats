@@ -211,7 +211,7 @@
         </div>
 
         <div class="footer">
-            <p>© Copyright by Insta Stats. All right reserved.</p>
+            <p>© Copyright (c) 2025 amdrydho26. All right reserved.</p>
         </div>
 
     </div>

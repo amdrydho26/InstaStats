@@ -1,4 +1,4 @@
-# 🏷️ Insta Stats
+# Insta Stats
 
 Sebuah website sederhana untuk menganalisa followers Instagram Kamu. Dengan Insta Stats, kamu bisa melihat siapa yang mengikuti balik, siapa yang tidak, tingkat persentase follow back, dan berbagai analisa data akun Instagram lainnya.
 
@@ -45,7 +45,7 @@ Proyek ini menggunakan lisensi MIT.
 
 ## 📬 Kontak
 
-Nama: Ahmad Ridho
-Email: ytansak53375@gmail.com
-GitHub: github.com/amdrydho26
-Instagram: @amd.rydho26
+- Nama: Ahmad Ridho
+- Email: ytansak53375@gmail.com
+- GitHub: github.com/amdrydho26
+- Instagram: @amd.rydho26
